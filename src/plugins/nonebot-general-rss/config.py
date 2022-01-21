@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import AnyHttpUrl, Extra
 from typing import List, Any
 
-DATA_PATH = Path.cwd().parent / "data"
+DATA_PATH = Path.cwd() / "data/RSS"
 JSON_PATH = DATA_PATH / "rss.json"
 
 
