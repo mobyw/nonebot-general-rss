@@ -8,7 +8,8 @@ from nonebot.rule import to_me
 
 from .RSS import rss_class
 
-from nonebot_guild_patch import GuildMessageEvent
+from .nonebot_guild_patch import GuildMessageEvent
+
 
 RSS_SHOW = on_command(
     "show",

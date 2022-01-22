@@ -2,6 +2,8 @@
 
 基于 [ELF_RSS](https://github.com/Quan666/ELF_RSS) 修改的 Nonebot2 机器人插件，支持子频道订阅。
 
+**当前版本适用于 `nonebot2 2.0.0a16` 及以下。**
+
 ## 功能介绍
 
 * 发送QQ消息来动态增、删、查、改 RSS 订阅

@@ -15,9 +15,11 @@ from .RSS import my_trigger as tr
 from .RSS import rss_class
 from .config import DATA_PATH, JSON_PATH
 
-from nonebot_guild_patch import GuildMessageEvent
+from .nonebot_guild_patch import GuildMessageEvent
+
 
 scheduler = require("nonebot_plugin_apscheduler").scheduler
+
 
 RSS_CHANGE = on_command(
     "change",

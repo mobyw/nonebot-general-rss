@@ -14,7 +14,6 @@ from .RSS.routes.Parsing.cache_manage import cache_filter
 from .RSS.routes.Parsing.check_update import dict_hash
 from .config import config, DATA_PATH, JSON_PATH
 
-from nonebot_guild_patch import GuildMessageEvent
 
 # 将 xxx.json (缓存) 改造为 tinydb 数据库
 def change_cache_json():

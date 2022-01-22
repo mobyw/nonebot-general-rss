@@ -7,8 +7,6 @@ from nonebot.rule import to_me
 from qbittorrent import Client
 from .config import config
 
-from nonebot_guild_patch import GuildMessageEvent
-
 
 upload_group_file = on_command(
     "upload_file", aliases={"uploadfile"}, rule=to_me(), priority=5

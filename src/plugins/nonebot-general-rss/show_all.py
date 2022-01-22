@@ -9,7 +9,8 @@ from nonebot.rule import to_me
 from .RSS import rss_class
 from .show_dy import handle_rss_list
 
-from nonebot_guild_patch import GuildMessageEvent
+from .nonebot_guild_patch import GuildMessageEvent
+
 
 RSS_SHOW_ALL = on_command(
     "show_all",

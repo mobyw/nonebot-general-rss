@@ -8,9 +8,11 @@ from nonebot.rule import to_me
 from .RSS import my_trigger as tr
 from .RSS import rss_class
 
-from nonebot_guild_patch import GuildMessageEvent
+from .nonebot_guild_patch import GuildMessageEvent
+
 
 SCHEDULER = require("nonebot_plugin_apscheduler").scheduler
+
 
 RSS_DELETE = on_command(
     "deldy",

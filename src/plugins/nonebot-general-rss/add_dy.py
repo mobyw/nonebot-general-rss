@@ -3,7 +3,8 @@ from nonebot import permission
 from nonebot.permission import SUPERUSER
 from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent, permission, unescape
 from nonebot.rule import to_me
-from nonebot_guild_patch import GuildMessageEvent
+
+from .nonebot_guild_patch import GuildMessageEvent
 
 from .RSS import my_trigger as tr
 from .RSS import rss_class
