@@ -2,7 +2,7 @@
 
 基于 [ELF_RSS](https://github.com/Quan666/ELF_RSS) 修改的 Nonebot2 机器人插件，支持子频道订阅。
 
-**当前版本v1.x适用于 `nonebot2 2.0.0a16` 及以下。**
+**当前版本v2.x适用于 `nonebot2 2.0.0b1` 及以上，若使用 `nonebot2 2.0.0a16` 请移步 alpha 分支。**
 
 ## 功能介绍
 

@@ -1,15 +1,17 @@
 import inspect
 from typing_extensions import Literal
 from typing import List, Union, Optional
-
 from pydantic import Field, BaseModel, validator
 
 import nonebot
+
 from nonebot.log import logger
-from nonebot.adapters.cqhttp.bot import Bot
-from nonebot.adapters.cqhttp.utils import escape
-from nonebot.adapters.cqhttp.message import Message, MessageSegment
-from nonebot.adapters.cqhttp.event import Event, NoticeEvent, MessageEvent
+from nonebot.message import handle_event
+
+from nonebot.adapters.onebot.v11.bot import Bot, _check_nickname
+from nonebot.adapters.onebot.v11.utils import escape
+from nonebot.adapters.onebot.v11.message import Message, MessageSegment
+from nonebot.adapters.onebot.v11.event import Event, NoticeEvent, MessageEvent
 
 
 class GuildMessageEvent(MessageEvent):
@@ -24,13 +26,13 @@ class GuildMessageEvent(MessageEvent):
     raw_message: str = Field(alias="message")
     font: None = None
 
-    @validator('raw_message', pre=True)
+    @validator("raw_message", pre=True)
     def _validate_raw_message(cls, raw_message):
         if isinstance(raw_message, str):
             return raw_message
         elif isinstance(raw_message, list):
             return str(Message(raw_message))
-        raise ValueError('unknown raw message type')
+        raise ValueError("unknown raw message type")
 
 
 class ReactionInfo(BaseModel):
@@ -111,28 +113,101 @@ class ChannelDestoryedNoticeEvent(ChannelNoticeEvent):
     channel_info: ChannelInfo
 
 
+def _check_at_me(bot: "Bot", event: MessageEvent):
+    """
+    :说明:
+      检查消息开头或结尾是否存在 @机器人，去除并赋值 ``event.to_me``
+    :参数:
+      * ``bot: Bot``: Bot 对象
+      * ``event: Event``: Event 对象
+    """
+
+    # ensure message not empty
+    if not event.message:
+        event.message.append(MessageSegment.text(""))
+
+    if event.message_type == "private":
+        event.to_me = True
+    else:
+
+        def _is_at_me_seg(segment: MessageSegment):
+            return segment.type == "at" and str(segment.data.get("qq", "")) == str(
+                event.self_tiny_id
+            )
+
+        # check the first segment
+        if _is_at_me_seg(event.message[0]):
+            event.to_me = True
+            event.message.pop(0)
+            if event.message and event.message[0].type == "text":
+                event.message[0].data["text"] = event.message[0].data["text"].lstrip()
+                if not event.message[0].data["text"]:
+                    del event.message[0]
+            if event.message and _is_at_me_seg(event.message[0]):
+                event.message.pop(0)
+                if event.message and event.message[0].type == "text":
+                    event.message[0].data["text"] = (
+                        event.message[0].data["text"].lstrip()
+                    )
+                    if not event.message[0].data["text"]:
+                        del event.message[0]
+
+        if not event.to_me:
+            # check the last segment
+            i = -1
+            last_msg_seg = event.message[i]
+            if (
+                last_msg_seg.type == "text"
+                and not last_msg_seg.data["text"].strip()
+                and len(event.message) >= 2
+            ):
+                i -= 1
+                last_msg_seg = event.message[i]
+
+            if _is_at_me_seg(last_msg_seg):
+                event.to_me = True
+                del event.message[i:]
+
+        if not event.message:
+            event.message.append(MessageSegment.text(""))
+
+
 original_send = Bot.send
 
 
-async def patched_send(self: Bot, event: Event,
-                       message: Union[Message, MessageSegment, str], **kwargs):
+async def patched_send(
+    self: Bot, event: Event, message: Union[Message, MessageSegment, str], **kwargs
+):
     guild_id: Optional[int] = getattr(event, "guild_id", None)
-    channel_id: Optional[int] = getattr(event, 'channel_id', None)
+    channel_id: Optional[int] = getattr(event, "channel_id", None)
     if not (guild_id and channel_id):
         return await original_send(self, event, message, **kwargs)
 
-    user_id: Optional[int] = getattr(event, 'user_id', None)
-    message = escape(message, escape_comma=False) if isinstance(
-        message, str) else message
+    user_id: Optional[int] = getattr(event, "user_id", None)
+    message = (
+        escape(message, escape_comma=False) if isinstance(message, str) else message
+    )
 
-    message_sent = message if isinstance(
-        message, Message) else Message(message)
-    if user_id and kwargs.get('at_sender', False):
-        message_sent = MessageSegment.at(user_id) + ' ' + message_sent
+    message_sent = message if isinstance(message, Message) else Message(message)
+    if user_id and kwargs.get("at_sender", False):
+        message_sent = MessageSegment.at(user_id) + " " + message_sent
 
-    return await self.send_guild_channel_msg(guild_id=guild_id,
-                                             channel_id=channel_id,
-                                             message=message_sent)
+    return await self.send_guild_channel_msg(
+        guild_id=guild_id, channel_id=channel_id, message=message_sent
+    )
+
+
+original_handle_event = Bot.handle_event
+
+
+async def patched_handle_event(self: Bot, event: MessageEvent):
+    if not isinstance(event, GuildMessageEvent):
+        await original_handle_event(self, event)
+    else:
+        _check_at_me(self, event)
+        _check_nickname(self, event)
+
+        await handle_event(self, event)
 
 
 driver = nonebot.get_driver()
@@ -140,13 +215,14 @@ driver = nonebot.get_driver()
 
 @driver.on_startup
 def patch():
-    import nonebot.adapters.cqhttp.event as events
+    from nonebot.adapters.onebot.v11.adapter import Adapter
 
     Bot.send = patched_send
+    Bot.handle_event = patched_handle_event
 
     for model in globals().values():
         if not inspect.isclass(model) or not issubclass(model, Event):
             continue
-        events._t["." + model.__event__] = model
+        Adapter.event_models["." + model.__event__] = model
 
-    logger.debug('Patch for NoneBot2 guild adaptation has been applied.')
+    logger.debug("Patch for NoneBot2 guild adaptation has been applied.")

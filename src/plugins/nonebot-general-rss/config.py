@@ -1,10 +1,11 @@
 import os
 
+from pathlib import Path
+from typing import List, Any
+from pydantic import AnyHttpUrl, Extra
+
 from nonebot import get_driver, logger
 from nonebot.config import BaseConfig
-from pathlib import Path
-from pydantic import AnyHttpUrl, Extra
-from typing import List, Any
 
 DATA_PATH = Path.cwd() / "data/RSS"
 JSON_PATH = DATA_PATH / "rss.json"
@@ -40,7 +41,7 @@ class ELFConfig(BaseConfig):
 
     max_length: int = 0  # 正文长度限制，防止消息太长刷屏
 
-    version: str = "v3.0.0"
+    version: str = "v2.0.0"
 
     def __getattr__(self, name: str) -> Any:
         data = self.dict()

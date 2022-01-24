@@ -1,9 +1,10 @@
 import re
 
-from nonebot.log import logger
 from pathlib import Path
 from tinydb import TinyDB, Query
 from tinydb.operations import set
+
+from nonebot.log import logger
 
 from ..config import config
 from ..config import DATA_PATH, JSON_PATH
@@ -76,7 +77,9 @@ class Rss:
         return None
 
     # 添加订阅
-    def add_user_or_group(self, user: str = None, group: str = None, guild_channel: str = None):
+    def add_user_or_group(
+        self, user: str = None, group: str = None, guild_channel: str = None
+    ):
         if user:
             if str(user) in self.user_id:
                 return
@@ -125,7 +128,9 @@ class Rss:
             indent=4,
             ensure_ascii=False,
         )
-        db.update(set("guild_channel_id", self.guild_channel_id), Query().name == self.name)
+        db.update(
+            set("guild_channel_id", self.guild_channel_id), Query().name == self.name
+        )
         return True
 
     # 删除整个订阅

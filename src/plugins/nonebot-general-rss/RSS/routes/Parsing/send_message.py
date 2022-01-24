@@ -1,10 +1,14 @@
 import nonebot
 
 from nonebot import logger
-from nonebot.adapters.cqhttp import NetworkError
+from nonebot.adapters.onebot.v11 import NetworkError
 
 from ....RSS import rss_class
-from ....bot_info import get_bot_friend_list, get_bot_group_list
+from ....bot_info import (
+    get_bot_friend_list,
+    get_bot_group_list,
+    get_bot_guild_channel_list,
+)
 
 
 # 发送消息
@@ -17,12 +21,12 @@ async def send_msg(rss: rss_class.Rss, msg: str, item: dict) -> bool:
         friend_list = await get_bot_friend_list(bot)
         for user_id in rss.user_id:
             if int(user_id) not in friend_list:
-                logger.error(f"QQ号[{user_id}]不是Bot[{bot.self_id}]的好友 链接：[{item['link']}]")
+                logger.error(
+                    f"QQ号[{user_id}]不是Bot[{bot.self_id}]的好友 链接：[{item['link']}]"
+                )
                 continue
             try:
-                await bot.send_msg(
-                    message_type="private", user_id=int(user_id), message=str(msg)
-                )
+                await bot.send_private_msg(user_id=int(user_id), message=str(msg))
                 flag = True
             except NetworkError:
                 if item.get("count") == 3:
@@ -39,9 +43,7 @@ async def send_msg(rss: rss_class.Rss, msg: str, item: dict) -> bool:
                 logger.error(f"Bot[{bot.self_id}]未加入群组[{group_id}] 链接：[{item['link']}]")
                 continue
             try:
-                await bot.send_msg(
-                    message_type="group", group_id=int(group_id), message=str(msg)
-                )
+                await bot.send_group_msg(group_id=int(group_id), message=str(msg))
                 flag = True
             except NetworkError:
                 if item.get("count") == 3:
@@ -53,13 +55,23 @@ async def send_msg(rss: rss_class.Rss, msg: str, item: dict) -> bool:
 
     if rss.guild_channel_id:
         for guild_channel_id in rss.guild_channel_id:
-            id=guild_channel_id.split('@')
+            id = guild_channel_id.split("@")
+            guild_id = str(id[0])
+            channel_id = str(id[1])
+
+            guild_channel_list = await get_bot_guild_channel_list(
+                bot, guild_id=guild_id
+            )
+
+            if channel_id not in guild_channel_list:
+                logger.error(
+                    f"Bot[{bot.self_id}]未加入频道[{guild_id}]的子频道[{channel_id}] 链接：[{item['link']}]"
+                )
+                continue
             try:
-                await bot.call_api('send_guild_channel_msg', **{
-                    'message': str(msg),
-                    'guild_id': str(id[0]),
-                    'channel_id': str(id[1])
-                })
+                await bot.send_guild_channel_msg(
+                    message=str(msg), guild_id=guild_id, channel_id=channel_id
+                )
                 flag = True
             except NetworkError:
                 if item.get("count") == 3:

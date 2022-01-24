@@ -1,9 +1,11 @@
 from nonebot import on_command
-from nonebot import permission
-from nonebot.permission import SUPERUSER
-from nonebot import require
-from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent, permission, unescape
 from nonebot.rule import to_me
+from nonebot.typing import T_State
+from nonebot.params import CommandArg, State
+from nonebot.permission import SUPERUSER
+
+from nonebot.adapters.onebot.v11 import Event, Message, GroupMessageEvent, unescape
+from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 
 from .RSS import my_trigger as tr
 from .RSS import rss_class
@@ -11,29 +13,31 @@ from .RSS import rss_class
 from .nonebot_guild_patch import GuildMessageEvent
 
 
-SCHEDULER = require("nonebot_plugin_apscheduler").scheduler
-
-
 RSS_DELETE = on_command(
     "deldy",
     aliases={"drop", "删除订阅"},
+    rule=to_me(),
     priority=5,
-    permission=permission.GROUP_ADMIN | permission.GROUP_OWNER | SUPERUSER,
+    permission=GROUP_ADMIN | GROUP_OWNER | SUPERUSER
 )
 
 
 @RSS_DELETE.handle()
-async def handle_first_receive(bot: Bot, event: Event, state: dict):
-    args = str(event.get_message()).strip()  # 首次发送命令时跟随的参数，例：/天气 上海，则args为上海
+async def handle_first_receive(
+    message: Message = CommandArg(), state: T_State = State()
+):
+    args = str(message).strip()
     if args:
-        state["RSS_DELETE"] = unescape(args)  # 如果用户发送了参数则直接赋值
+        state["RSS_DELETE"] = unescape(args)
 
 
 @RSS_DELETE.got("RSS_DELETE", prompt="输入要删除的订阅名")
-async def handle_rss_delete(bot: Bot, event: Event, state: dict):
+async def handle_rss_delete(event: Event, state: T_State = State()):
     rss_name = unescape(state["RSS_DELETE"])
+
     group_id = None
     guild_channel_id = None
+
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
     if isinstance(event, GuildMessageEvent):
@@ -44,8 +48,7 @@ async def handle_rss_delete(bot: Bot, event: Event, state: dict):
     if rss.find_name(name=rss_name):
         rss = rss.find_name(name=rss_name)
     else:
-        await RSS_DELETE.send("❌ 删除失败！不存在该订阅！")
-        return
+        await RSS_DELETE.finish("❌ 删除失败！不存在该订阅！")
 
     if group_id:
         if rss.delete_group(group=group_id):
@@ -54,20 +57,20 @@ async def handle_rss_delete(bot: Bot, event: Event, state: dict):
                 await tr.delete_job(rss)
             else:
                 await tr.add_job(rss)
-            await RSS_DELETE.send(f"👏 当前群组取消订阅 {rss.name} 成功！")
+            await RSS_DELETE.finish(f"👏 当前群组取消订阅 {rss.name} 成功！")
         else:
-            await RSS_DELETE.send(f"❌ 当前群组没有订阅： {rss.name} ！")
+            await RSS_DELETE.finish(f"❌ 当前群组没有订阅： {rss.name} ！")
     elif guild_channel_id:
         if rss.delete_guild_channel(guild_channel=guild_channel_id):
-            if not rss.guild_channel_id and not rss.user_id and not rss.guild_channel_id:
+            if not rss.group_id and not rss.user_id and not rss.guild_channel_id:
                 rss.delete_rss()
                 await tr.delete_job(rss)
             else:
                 await tr.add_job(rss)
-            await RSS_DELETE.send(f"👏 当前子频道取消订阅 {rss.name} 成功！")
+            await RSS_DELETE.finish(f"👏 当前子频道取消订阅 {rss.name} 成功！")
         else:
-            await RSS_DELETE.send(f"❌ 当前子频道没有订阅： {rss.name} ！")
+            await RSS_DELETE.finish(f"❌ 当前子频道没有订阅： {rss.name} ！")
     else:
         rss.delete_rss()
         await tr.delete_job(rss)
-        await RSS_DELETE.send(f"👏 订阅 {rss.name} 删除成功！")
+        await RSS_DELETE.finish(f"👏 订阅 {rss.name} 删除成功！")

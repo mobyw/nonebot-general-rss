@@ -1,18 +1,22 @@
 import json
-import nonebot
 
-from nonebot import logger, on_metaevent
-from nonebot.adapters.cqhttp import Bot, Event, LifecycleMetaEvent
 from pathlib import Path
+
 from tinydb import TinyDB
 from tinydb.storages import JSONStorage
 from tinydb.middlewares import CachingMiddleware
+
+from nonebot import logger, on_metaevent, require
+from nonebot.adapters.onebot.v11 import Event, LifecycleMetaEvent
 
 from .RSS import my_trigger as tr
 from .RSS import rss_class
 from .RSS.routes.Parsing.cache_manage import cache_filter
 from .RSS.routes.Parsing.check_update import dict_hash
 from .config import config, DATA_PATH, JSON_PATH
+
+
+scheduler = require("nonebot_plugin_apscheduler").scheduler
 
 
 # 将 xxx.json (缓存) 改造为 tinydb 数据库
@@ -92,13 +96,12 @@ def change_rss_json():
 
 
 async def start():
-    bot = nonebot.get_bot()
 
     # 启动后检查 data 目录，不存在就创建
     if not DATA_PATH.is_dir():
         DATA_PATH.mkdir()
 
-    if config.version >= "v2.4.0":
+    if config.version >= "v1.0.0":
         change_rss_json()
         change_cache_json()
 
@@ -110,14 +113,14 @@ async def start():
         for rss_tmp in rss_list:
             if not rss_tmp.stop:
                 await tr.add_job(rss_tmp)  # 创建检查更新任务
-        logger.info("ELF_RSS_R 订阅器启动成功！")
+        logger.info("GENERAL_RSS 订阅器启动成功！")
     except Exception as e:
         logger.info("第一次启动，你还没有订阅，记得添加哟！")
         logger.debug(e)
         raise
 
 
-async def check_first_connect(bot: Bot, event: Event, state: dict) -> bool:
+async def check_first_connect(event: Event) -> bool:
     if isinstance(event, LifecycleMetaEvent) and not config.is_start:
         config.is_start = True
         return True
@@ -128,6 +131,6 @@ start_metaevent = on_metaevent(rule=check_first_connect, block=True)
 
 
 @start_metaevent.handle()
-async def _(bot: Bot, event: Event, state: dict):
+async def _():
     # 启动时发送启动成功信息
     await start()

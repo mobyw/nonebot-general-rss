@@ -1,17 +1,19 @@
-import arrow
-import asyncio
-import base64
-import httpx
-import nonebot
 import re
+import arrow
+import httpx
+import base64
+import asyncio
+import nonebot
 
-from apscheduler.triggers.interval import IntervalTrigger
-from nonebot import logger, require
-from nonebot.adapters.cqhttp import ActionFailed
 from qbittorrent import Client
+from apscheduler.triggers.interval import IntervalTrigger
+
+from nonebot import logger, require
+from nonebot.adapters.onebot.v11 import ActionFailed
 
 from ..bot_info import get_bot_group_list
 from ..config import config
+
 
 # 计划
 # 创建一个全局定时器用来检测种子下载情况
@@ -35,6 +37,7 @@ down_info = {}
 #         "downing_tips_msg_id":[] # 下载中通知群上一条通知的信息，用于撤回，防止刷屏
 #     }
 # }
+
 
 # 发送通知
 async def send_msg(msg: str) -> list:

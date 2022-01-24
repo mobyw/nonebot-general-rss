@@ -16,11 +16,11 @@
 
 """
 
+import json
+import urllib
+import random
 import hashlib
 import http.client
-import json
-import random
-import urllib
 
 from nonebot import logger
 
