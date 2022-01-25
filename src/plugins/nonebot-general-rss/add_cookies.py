@@ -43,7 +43,7 @@ prompt = """\
 
 @ADD_COOKIES.got("COOKIES", prompt=prompt)
 async def handle_add_cookies(state: T_State = State()):
-    rss_cookies = unescape(state["COOKIES"])
+    rss_cookies = unescape(str(state["COOKIES"]))
 
     dy = rss_cookies.split(" ", 1)
 

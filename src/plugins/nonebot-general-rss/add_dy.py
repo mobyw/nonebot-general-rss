@@ -41,7 +41,7 @@ prompt = """\
 
 @RSS_ADD.got("RSS_ADD", prompt=prompt)
 async def handle_rss_add(event: Event, state: T_State = State()):
-    rss_dy_link = unescape(state["RSS_ADD"])
+    rss_dy_link = unescape(str(state["RSS_ADD"]))
 
     user_id = event.get_user_id()
     group_id = None

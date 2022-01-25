@@ -33,7 +33,7 @@ async def handle_first_receive(
 
 @RSS_DELETE.got("RSS_DELETE", prompt="输入要删除的订阅名")
 async def handle_rss_delete(event: Event, state: T_State = State()):
-    rss_name = unescape(state["RSS_DELETE"])
+    rss_name = unescape(str(state["RSS_DELETE"]))
 
     group_id = None
     guild_channel_id = None

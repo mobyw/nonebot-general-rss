@@ -162,7 +162,7 @@ prompt = """\
 
 @RSS_CHANGE.got("RSS_CHANGE", prompt=prompt)
 async def handle_rss_change(event: Event, state: T_State = State()):
-    change_info = unescape(state["RSS_CHANGE"])
+    change_info = unescape(str(state["RSS_CHANGE"]))
 
     group_id = None
     guild_channel_id = None
