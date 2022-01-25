@@ -13,7 +13,7 @@ from .RSS import my_trigger as tr
 from .RSS import rss_class
 from .RSS.routes.Parsing.cache_manage import cache_filter
 from .RSS.routes.Parsing.check_update import dict_hash
-from .config import config, DATA_PATH, JSON_PATH
+from .config import config, DATA_ROOT, DATA_PATH, JSON_PATH
 
 
 scheduler = require("nonebot_plugin_apscheduler").scheduler
@@ -98,6 +98,9 @@ def change_rss_json():
 async def start():
 
     # 启动后检查 data 目录，不存在就创建
+    if not DATA_ROOT.is_dir():
+        DATA_ROOT.mkdir()
+
     if not DATA_PATH.is_dir():
         DATA_PATH.mkdir()
 

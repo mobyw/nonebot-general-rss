@@ -7,7 +7,8 @@ from pydantic import AnyHttpUrl, Extra
 from nonebot import get_driver, logger
 from nonebot.config import BaseConfig
 
-DATA_PATH = Path.cwd() / "data/RSS"
+DATA_ROOT = Path.cwd() / "data"
+DATA_PATH = DATA_ROOT / "RSS"
 JSON_PATH = DATA_PATH / "rss.json"
 
 
