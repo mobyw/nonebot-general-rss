@@ -1,25 +1,21 @@
-import re
 import copy
-
+import re
 from typing import List
-from tinydb import TinyDB, Query
 
 from nonebot import on_command
-from nonebot.log import logger
-from nonebot.rule import to_me
-from nonebot.typing import T_State
-from nonebot.params import CommandArg, State
-from nonebot.permission import SUPERUSER
-
-from nonebot.adapters.onebot.v11 import Bot, Message, Event, GroupMessageEvent, unescape
+from nonebot.adapters.onebot.v11 import Event, GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
+from nonebot.log import logger
+from nonebot.matcher import Matcher
+from nonebot.params import ArgPlainText, CommandArg
+from nonebot.permission import SUPERUSER
+from nonebot.rule import to_me
+from tinydb import Query, TinyDB
 
+from .config import DATA_PATH, JSON_PATH
+from .nonebot_guild_patch import GuildMessageEvent
 from .RSS import my_trigger as tr
 from .RSS import rss_class
-from .config import DATA_PATH, JSON_PATH
-
-from .nonebot_guild_patch import GuildMessageEvent
-
 
 RSS_CHANGE = on_command(
     "change",
@@ -31,12 +27,10 @@ RSS_CHANGE = on_command(
 
 
 @RSS_CHANGE.handle()
-async def handle_first_receive(
-    message: Message = CommandArg(), state: T_State = State()
-):
-    args = str(message).strip()
-    if args:
-        state["RSS_CHANGE"] = unescape(args)
+async def handle_first_receive(matcher: Matcher, args: Message = CommandArg()):
+    plain_text = args.extract_plain_text()
+    if plain_text:
+        matcher.set_arg("RSS_CHANGE", args)
 
 
 # 处理带多个值的订阅参数
@@ -146,14 +140,14 @@ prompt = """\
     去重模式(-mode)
     图片数量限制(-img_num): 只发送限定数量的图片，防止刷屏
     正文移除内容(-rm_list): 从正文中移除指定内容，支持正则
-    停止更新-stop"
+    停止更新-stop
 注：
     1. 仅含有图片不同于仅图片，除了图片还会发送正文中的其他文本信息
     2. proxy/tl/ot/op/ohp/downopen/upgroup/stop 值为 1/0
     3. 去重模式分为按链接(link)、标题(title)、图片(image)判断，其中 image 模式生效对象限定为只带 1 张图片的消息。如果属性中带有 or 说明判断逻辑是任一匹配即去重，默认为全匹配
     4. 白名单关键词支持正则表达式，匹配时推送消息及下载，设为空(wkey=)时不生效
     5. 黑名单关键词同白名单相似，匹配时不推送，两者可以一起用
-    6. 正文待移除内容格式必须如：rm_list='a' 或 rm_list='a','b'。该处理过程在解析 html 标签后进行，设为空使用 rm_list='-1'"
+    6. 正文待移除内容格式必须如：rm_list='a' 或 rm_list='a','b'。该处理过程在解析 html 标签后进行，设为空使用 rm_list='-1'
     7. QQ、群号、去重模式前加英文逗号表示追加，-1设为空
     8. 各个属性使用空格分割
 详细用法请查阅文档。\
@@ -161,8 +155,7 @@ prompt = """\
 
 
 @RSS_CHANGE.got("RSS_CHANGE", prompt=prompt)
-async def handle_rss_change(event: Event, state: T_State = State()):
-    change_info = unescape(str(state["RSS_CHANGE"]))
+async def handle_rss_change(event: Event, change_info: str = ArgPlainText("RSS_CHANGE")):
 
     group_id = None
     guild_channel_id = None

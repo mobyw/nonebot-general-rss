@@ -1,14 +1,10 @@
 import nonebot
-
 from nonebot import logger
 from nonebot.adapters.onebot.v11 import NetworkError
 
+from ....bot_info import (get_bot_friend_list, get_bot_group_list,
+                          get_bot_guild_channel_list)
 from ....RSS import rss_class
-from ....bot_info import (
-    get_bot_friend_list,
-    get_bot_group_list,
-    get_bot_guild_channel_list,
-)
 
 
 # 发送消息

@@ -1,17 +1,14 @@
 import copy
 
 from nonebot import on_command
-from nonebot.rule import to_me
+from nonebot.adapters.onebot.v11 import Event, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
-
-from nonebot.adapters.onebot.v11 import Event, Message, GroupMessageEvent, unescape
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
-
-from .RSS import rss_class
+from nonebot.rule import to_me
 
 from .nonebot_guild_patch import GuildMessageEvent
-
+from .RSS import rss_class
 
 RSS_SHOW = on_command(
     "show",
@@ -39,12 +36,8 @@ async def handle_rss_list(rss_list: list) -> str:
 
 # 不带订阅名称默认展示当前群组或账号的订阅，带订阅名称就显示该订阅的
 @RSS_SHOW.handle()
-async def handle_first_receive(event: Event, message: Message = CommandArg()):
-    args = str(message).strip()
-    if args:
-        rss_name = unescape(args)
-    else:
-        rss_name = None
+async def handle_first_receive(event: Event, args: Message = CommandArg()):
+    rss_name = args.extract_plain_text()
 
     user_id = event.get_user_id()
     group_id = None

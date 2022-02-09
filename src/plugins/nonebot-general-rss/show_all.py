@@ -1,18 +1,15 @@
 import re
 
 from nonebot import on_command
-from nonebot.rule import to_me
+from nonebot.adapters.onebot.v11 import Event, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
-
-from nonebot.adapters.onebot.v11 import Event, Message, GroupMessageEvent, unescape
-from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
-
-from .RSS import rss_class
-from .show_dy import handle_rss_list
+from nonebot.rule import to_me
 
 from .nonebot_guild_patch import GuildMessageEvent
-
+from .RSS import rss_class
+from .show_dy import handle_rss_list
 
 RSS_SHOW_ALL = on_command(
     "show_all",
@@ -24,12 +21,8 @@ RSS_SHOW_ALL = on_command(
 
 
 @RSS_SHOW_ALL.handle()
-async def handle_first_receive(event: Event, message: Message = CommandArg()):
-    args = str(message).strip()
-    if args:
-        search_keyword = unescape(args)
-    else:
-        search_keyword = None
+async def handle_first_receive(event: Event, args: Message = CommandArg()):
+    search_keyword = args.extract_plain_text()
 
     group_id = None
     guild_channel_id = None
