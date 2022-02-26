@@ -1,5 +1,19 @@
 # nonebot-general-rss
 
+---
+
+**当前项目已停止维护**
+
+由于 [`ELF_RSS`](https://github.com/Quan666/ELF_RSS) 已做频道适配，当前项目已停止维护，请使用 [`ELF_RSS`](https://github.com/Quan666/ELF_RSS) 。
+
+从本项目向 [`ELF_RSS`](https://github.com/Quan666/ELF_RSS) 迁移方式：
+
+- 将 `./data/RSS/` 文件夹下的数据移动到 `./data/` 文件夹下。
+- 将 `.env.*` 配置文件 `SUPERUSERS` 中的频道号移动到 `GUILD_SUPERUSERS` 中进行配置。
+- 更多配置详见 [`ELF_RSS`](https://github.com/Quan666/ELF_RSS) 文档。
+
+---
+
 基于 [ELF_RSS](https://github.com/Quan666/ELF_RSS) 修改的 Nonebot2 机器人插件，支持子频道订阅。
 
 **当前版本v2.x适用于 `nonebot2 2.0.0b1` 及以上，若使用 `nonebot2 2.0.0a16` 请移步 alpha 分支。**
@@ -31,5 +45,3 @@
 ![效果3](https://cdn.jsdelivr.net/gh/mobyw/images@main/Screenshots/Screenshot_4.jpg)
 
 ![效果4](https://cdn.jsdelivr.net/gh/mobyw/images@main/Screenshots/Screenshot_5.jpg)
-
-![效果5](https://cdn.jsdelivr.net/gh/mobyw/images@main/Screenshots/Screenshot_6.jpg)
